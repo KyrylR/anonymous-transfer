@@ -16,7 +16,7 @@ contract IncrementalMerkleTree {
         ZERO_HASH = _hash(bytes32(abi.encode(0)));
     }
 
-    function add(bytes32 element_) external {
+    function add(bytes32 element_) public {
         bytes32 resultValue_;
 
         resultValue_ = _hash(element_);
@@ -43,7 +43,7 @@ contract IncrementalMerkleTree {
         }
     }
 
-    function getRoot() external view returns (bytes32) {
+    function getRoot() public view returns (bytes32) {
         uint256 treeHeight_ = branches.length;
 
         if (treeHeight_ == 0) {
@@ -69,11 +69,11 @@ contract IncrementalMerkleTree {
         return root_;
     }
 
-    function getHeight() external view returns (uint256) {
+    function getHeight() public view returns (uint256) {
         return branches.length;
     }
 
-    function getLength() external view returns (uint256) {
+    function getLength() public view returns (uint256) {
         return leavesCount;
     }
 
