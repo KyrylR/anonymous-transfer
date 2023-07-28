@@ -3,30 +3,37 @@ import { ethers } from "hardhat";
 
 import { MerkleTree } from "merkletreejs";
 
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+
 import { getPoseidon, poseidonHash } from "@/test/helpers/poseidon-hash";
 import { buildSparseMerkleTree, getBytes32PoseidonHash, getRoot } from "@/test/helpers/merkle-tree-helper";
 
-import { Depositor } from "@ethers-v5";
+import { Depositor, Groth16Verifier } from "@ethers-v5";
 import { generateSecrets, getCommitment, getZKP, SecretPair } from "@/test/helpers/deposit-withdraw-helper";
 
 describe("Depositor", () => {
-  let OWNER: string;
-  let USER1: string;
+  let OWNER: SignerWithAddress;
+  let USER1: SignerWithAddress;
 
   let depositor: Depositor;
 
   let localMerkleTree: MerkleTree;
 
-  let treeHeight = 5;
+  let treeHeight = 6;
 
   beforeEach(async () => {
+    [OWNER, USER1] = await ethers.getSigners();
+
+    const verifierFactory = await ethers.getContractFactory("Groth16Verifier");
+    const verifier = await verifierFactory.deploy();
+
     const depositorFactory = await ethers.getContractFactory("Depositor", {
       libraries: {
         PoseidonUnit1L: (await getPoseidon(1)).address,
         PoseidonUnit2L: (await getPoseidon(2)).address,
       },
     });
-    depositor = await depositorFactory.deploy(treeHeight, ethers.constants.AddressZero);
+    depositor = await depositorFactory.deploy(treeHeight, verifier.address);
 
     localMerkleTree = buildSparseMerkleTree(poseidonHash, [], treeHeight);
   });
@@ -94,14 +101,39 @@ describe("Depositor", () => {
       );
     });
 
-    it.only("should withdraw 1 Q", async () => {
-      getZKP(pair, localMerkleTree);
+    it("should withdraw 1 Q", async () => {
+      const dataToVerify = await getZKP(pair, await depositor.getRoot(), localMerkleTree);
+
+      await depositor.withdraw(dataToVerify.nullifierHash, USER1.address, dataToVerify.formattedProof);
     });
 
-    it("should not withdraw with same nullifier", async () => {});
+    it("should not withdraw with same nullifier", async () => {
+      const dataToVerify = await getZKP(pair, await depositor.getRoot(), localMerkleTree);
 
-    it("should not withdraw with wrong proof", async () => {});
+      await depositor.withdraw(dataToVerify.nullifierHash, USER1.address, dataToVerify.formattedProof);
+      await expect(
+        depositor.withdraw(dataToVerify.nullifierHash, USER1.address, dataToVerify.formattedProof)
+      ).to.be.revertedWith("Depositor: nullifier already exists");
+    });
 
-    it("should not withdraw if asset transfer failed", async () => {});
+    it("should not withdraw with wrong proof", async () => {
+      const dataToVerify = await getZKP(pair, await depositor.getRoot(), localMerkleTree);
+
+      dataToVerify.formattedProof.a[0] = "0x18d62e34099fd9eab341683f2d30c9a9035fffde7909dbc78b0fde1233f0f774";
+      await expect(
+        depositor.withdraw(dataToVerify.nullifierHash, USER1.address, dataToVerify.formattedProof)
+      ).to.be.revertedWith("Depositor: Invalid withdraw proof");
+    });
+
+    it("should not withdraw if asset transfer failed", async () => {
+      const dataToVerify = await getZKP(pair, await depositor.getRoot(), localMerkleTree);
+
+      const ERC20Factory = await ethers.getContractFactory("ERC20Mock");
+      const ERC20 = await ERC20Factory.deploy("ERC20", "ERC20", 18);
+
+      await expect(
+        depositor.withdraw(dataToVerify.nullifierHash, ERC20.address, dataToVerify.formattedProof)
+      ).to.be.revertedWith("Depositor: withdraw failed");
+    });
   });
 });

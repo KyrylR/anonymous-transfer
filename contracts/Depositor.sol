@@ -1,12 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-import {IVerifier} from "./interfaces/IVerifier.sol";
+import {TypeCaster} from "@dlsl/dev-modules/libs/utils/TypeCaster.sol";
+
+import {VerifierHelper} from "@dlsl/dev-modules/libs/zkp/snarkjs/VerifierHelper.sol";
 
 import {PoseidonIMT} from "./utils/PoseidonIMT.sol";
 
 contract Depositor is PoseidonIMT {
-    IVerifier public verifier;
+    using TypeCaster for *;
+
+    using VerifierHelper for address;
+
+    address public verifier;
 
     mapping(bytes32 => bool) public commitments;
     mapping(bytes32 => bool) public nullifies;
@@ -19,7 +25,7 @@ contract Depositor is PoseidonIMT {
      *
      * Tree height used to generate verify contract MUST be the same as {treeHeight_}
      */
-    constructor(uint256 treeHeight_, IVerifier verifier_) PoseidonIMT(treeHeight_) {
+    constructor(uint256 treeHeight_, address verifier_) PoseidonIMT(treeHeight_) {
         verifier = verifier_;
     }
 
@@ -32,15 +38,19 @@ contract Depositor is PoseidonIMT {
     }
 
     function withdraw(
-        bytes calldata proof_,
         bytes32 nullifierHash_,
-        address payable recipient_
+        address payable recipient_,
+        VerifierHelper.ProofPoints calldata proof_
     ) public {
         require(!nullifies[nullifierHash_], "Depositor: nullifier already exists");
 
         require(
-            verifier.verifyProof(proof_, [uint256(getRoot()), uint256(nullifierHash_)]),
-            "Invalid withdraw proof"
+            verifier.verifyProofSafe(
+                [uint256(getRoot()), uint256(nullifierHash_)].asDynamic(),
+                proof_,
+                2
+            ),
+            "Depositor: Invalid withdraw proof"
         );
 
         nullifies[nullifierHash_] = true;

@@ -21,7 +21,7 @@ describe("IncrementalMerkleTree", () => {
   let localMerkleTree: MerkleTree;
   let poseidonMerkleTree: MerkleTree;
 
-  let treeHeight = 15;
+  let treeHeight = 0;
   let poseidonTreeHeight = 6;
 
   beforeEach(async () => {

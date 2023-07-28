@@ -1,8 +1,8 @@
 #!/bin/bash
-set -e 
+set -e
 
 CIRCUIT_NAME="Withdraw"
-SETUP_POWERS=11
+SETUP_POWERS=13
 BUILD_DIR=""
 CIRCUIT_FILE=""
 POWERS_FILE=""
@@ -46,7 +46,7 @@ mkdir -p $BUILD_DIR/$SETUP_POWERS
 # Generatin trusted setup as powers/SETUP_POWERS.ptau
 echo -e "\Generating trustep setup..."
 
-snarkjs powersoftau new bn128 ${SETUP_POWERS} ${BUILD_DIR}/${SETUP_POWERS}/pot${SETUP_POWERS}_0000.ptau 
+snarkjs powersoftau new bn128 ${SETUP_POWERS} ${BUILD_DIR}/${SETUP_POWERS}/pot${SETUP_POWERS}_0000.ptau
 echo $((RANDOM)) | snarkjs powersoftau contribute ${BUILD_DIR}/${SETUP_POWERS}/pot${SETUP_POWERS}_0000.ptau ${BUILD_DIR}/${SETUP_POWERS}/pot${SETUP_POWERS}_0001.ptau --name="Someone" -v
 
 snarkjs powersoftau prepare phase2 ${BUILD_DIR}/${SETUP_POWERS}/pot${SETUP_POWERS}_0001.ptau ${BUILD_DIR}/${SETUP_POWERS}.ptau -v
