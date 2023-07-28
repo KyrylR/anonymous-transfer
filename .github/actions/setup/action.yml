@@ -13,3 +13,20 @@ runs:
     - name: Install packages
       run: npm install
       shell: bash
+    - name: Setup cargo
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    - name: Clone circom repo
+      shell: bash
+      run: git clone https://github.com/iden3/circom.git
+    - name: Install circom
+      shell: bash
+      run: |
+        cd circom
+        cargo build --release
+        cargo install --path circom
+    - name: Install snarkjs
+      shell: bash
+      run: npm install -g snarkjs
