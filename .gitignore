@@ -11,3 +11,5 @@ coverage
 
 # Typechain generated files
 generated-types
+
+circuits/outputs

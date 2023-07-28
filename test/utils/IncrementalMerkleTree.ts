@@ -4,11 +4,17 @@ import { ethers } from "hardhat";
 import { MerkleTree } from "merkletreejs";
 
 import { getPoseidon, poseidonHash } from "@/test/helpers/poseidon-hash";
-import { buildSparseMerkleTree, getRoot } from "@/test/helpers/merkle-tree-helper";
+import {
+  buildSparseMerkleTree,
+  getBytes32Element,
+  getBytes32ElementHash,
+  getBytes32PoseidonHash,
+  getRoot,
+} from "@/test/helpers/merkle-tree-helper";
 
 import { IncrementalMerkleTree, PoseidonIMT } from "@ethers-v5";
 
-describe.only("IncrementalMerkleTree", () => {
+describe("IncrementalMerkleTree", () => {
   let poseidonIMT: PoseidonIMT;
   let merkleTree: IncrementalMerkleTree;
 
@@ -34,18 +40,6 @@ describe.only("IncrementalMerkleTree", () => {
 
     poseidonIMT = await poseidonIMTFactory.deploy(poseidonTreeHeight);
   });
-
-  function getBytes32Element(element: string) {
-    return ethers.utils.hexZeroPad(element, 32);
-  }
-
-  function getBytes32ElementHash(element: string) {
-    return ethers.utils.keccak256(ethers.utils.hexZeroPad(element, 32));
-  }
-
-  function getBytes32PoseidonHash(element: string) {
-    return poseidonHash(ethers.utils.hexZeroPad(element, 32));
-  }
 
   describe("Basic IMT", () => {
     it("should add element to tree", async () => {
