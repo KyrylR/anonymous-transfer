@@ -24,10 +24,15 @@
   },
   "dependencies": {
     "@dlsl/dev-modules": "^2.5.1",
+    "@iden3/contracts": "^1.1.0",
+    "@iden3/js-iden3-core": "^1.0.0",
     "@openzeppelin/contracts": "4.9.2",
     "@openzeppelin/contracts-upgradeable": "4.9.2",
+    "circomlib": "^2.0.5",
+    "circomlibjs": "^0.1.7",
     "dotenv": "^16.3.1",
     "hardhat": "^2.17.0",
+    "maci-circuits": "^1.1.2",
     "typechain": "^8.3.1"
   },
   "devDependencies": {
@@ -50,6 +55,7 @@
     "hardhat-contract-sizer": "^2.10.0",
     "hardhat-gas-reporter": "^1.0.9",
     "husky": "^7.0.4",
+    "merkletreejs": "^0.3.10",
     "mocha": "^10.2.0",
     "prettier": "^2.8.8",
     "prettier-plugin-solidity": "^1.1.3",
