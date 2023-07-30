@@ -13,14 +13,14 @@ runs:
     - name: Install packages
       run: npm install
       shell: bash
+    - name: Install snarkjs
+      shell: bash
+      run: npm install -g snarkjs
     - name: Setup cargo
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
         override: true
-    - name: Clone circom repo
-      shell: bash
-      run: git clone https://github.com/iden3/circom.git
     - name: ⚡ Cache
       id: cache-cargo
       uses: actions/cache@v3
@@ -28,17 +28,19 @@ runs:
         path: |
           ~/.cargo/registry
           ~/.cargo/git
-          circom/target
+          circom
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-    - name: Install circom
+    - if: ${{ steps.cache-cargo.outputs.cache-hit != 'true' }}
+      name: Clone circom repo
+      shell: bash
+      run: git clone https://github.com/iden3/circom.git
+    - if: ${{ steps.cache-cargo.outputs.cache-hit != 'true' }}
+      name: Install circom
       shell: bash
       working-directory: circom
       run: |
         cargo build --release
         cargo install --path circom
-    - name: Install snarkjs
-      shell: bash
-      run: npm install -g snarkjs
     - name: ⚡ Cache circom
       id: cache-circom
       uses: actions/cache@v3
@@ -48,7 +50,6 @@ runs:
         key: |
           ${{ runner.os }}-circom-${{ hashFiles('**/Withdraw.circom') }}
           ${{ runner.os }}-circom-${{ hashFiles('**/Verifier.circom') }}
-
     - if: ${{ steps.cache-circom.outputs.cache-hit != 'true' }}
       name: Generate trusted setup
       shell: bash
