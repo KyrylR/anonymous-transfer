@@ -8,7 +8,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { getPoseidon, poseidonHash } from "@/test/helpers/poseidon-hash";
 import { buildSparseMerkleTree, getBytes32PoseidonHash, getRoot } from "@/test/helpers/merkle-tree-helper";
 
-import { Depositor, Groth16Verifier } from "@ethers-v5";
+import { Depositor } from "@ethers-v5";
 import { generateSecrets, getCommitment, getZKP, SecretPair } from "@/test/helpers/deposit-withdraw-helper";
 
 describe("Depositor", () => {
@@ -102,13 +102,13 @@ describe("Depositor", () => {
     });
 
     it("should withdraw 1 Q", async () => {
-      const dataToVerify = await getZKP(pair, await depositor.getRoot(), localMerkleTree);
+      const dataToVerify = await getZKP(pair, USER1.address, await depositor.getRoot(), localMerkleTree);
 
       await depositor.withdraw(dataToVerify.nullifierHash, USER1.address, dataToVerify.formattedProof);
     });
 
     it("should not withdraw with same nullifier", async () => {
-      const dataToVerify = await getZKP(pair, await depositor.getRoot(), localMerkleTree);
+      const dataToVerify = await getZKP(pair, USER1.address, await depositor.getRoot(), localMerkleTree);
 
       await depositor.withdraw(dataToVerify.nullifierHash, USER1.address, dataToVerify.formattedProof);
       await expect(
@@ -117,7 +117,7 @@ describe("Depositor", () => {
     });
 
     it("should not withdraw with wrong proof", async () => {
-      const dataToVerify = await getZKP(pair, await depositor.getRoot(), localMerkleTree);
+      const dataToVerify = await getZKP(pair, USER1.address, await depositor.getRoot(), localMerkleTree);
 
       dataToVerify.formattedProof.a[0] = "0x18d62e34099fd9eab341683f2d30c9a9035fffde7909dbc78b0fde1233f0f774";
       await expect(
@@ -125,11 +125,23 @@ describe("Depositor", () => {
       ).to.be.revertedWith("Depositor: Invalid withdraw proof");
     });
 
-    it("should not withdraw if asset transfer failed", async () => {
-      const dataToVerify = await getZKP(pair, await depositor.getRoot(), localMerkleTree);
+    it("should not withdraw with different recipient", async () => {
+      const recipient = USER1.address;
+      const dataToVerify = await getZKP(pair, recipient, await depositor.getRoot(), localMerkleTree);
 
+      await expect(
+        depositor.withdraw(dataToVerify.nullifierHash, OWNER.address, dataToVerify.formattedProof)
+      ).to.be.revertedWith("Depositor: Invalid withdraw proof");
+
+      await expect(depositor.withdraw(dataToVerify.nullifierHash, recipient, dataToVerify.formattedProof)).to.not.be
+        .reverted;
+    });
+
+    it("should not withdraw if asset transfer failed", async () => {
       const ERC20Factory = await ethers.getContractFactory("ERC20Mock");
       const ERC20 = await ERC20Factory.deploy("ERC20", "ERC20", 18);
+
+      const dataToVerify = await getZKP(pair, ERC20.address, await depositor.getRoot(), localMerkleTree);
 
       await expect(
         depositor.withdraw(dataToVerify.nullifierHash, ERC20.address, dataToVerify.formattedProof)

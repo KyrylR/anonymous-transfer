@@ -39,23 +39,24 @@ contract Depositor is PoseidonIMT {
 
     function withdraw(
         bytes32 nullifierHash_,
-        address payable recipient_,
+        address recipient_,
         VerifierHelper.ProofPoints calldata proof_
     ) public {
         require(!nullifies[nullifierHash_], "Depositor: nullifier already exists");
 
         require(
             verifier.verifyProofSafe(
-                [uint256(getRoot()), uint256(nullifierHash_)].asDynamic(),
+                [uint256(getRoot()), uint256(nullifierHash_), uint256(uint160(recipient_))]
+                    .asDynamic(),
                 proof_,
-                2
+                3
             ),
             "Depositor: Invalid withdraw proof"
         );
 
         nullifies[nullifierHash_] = true;
 
-        (bool success_, ) = recipient_.call{value: 1 ether}("");
+        (bool success_, ) = payable(recipient_).call{value: 1 ether}("");
         require(success_, "Depositor: withdraw failed");
     }
 }

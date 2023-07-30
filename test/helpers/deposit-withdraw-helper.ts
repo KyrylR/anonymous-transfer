@@ -31,7 +31,7 @@ export function getNullifierHash(pair: SecretPair): string {
   return poseidonHash(pair.nullifier);
 }
 
-export async function getZKP(pair: SecretPair, root: string, tree: MerkleTree) {
+export async function getZKP(pair: SecretPair, recipient: string, root: string, tree: MerkleTree) {
   const leaf = getBytes32PoseidonHash(getCommitment(pair));
   const nullifierHash = getNullifierHash(pair);
 
@@ -43,6 +43,7 @@ export async function getZKP(pair: SecretPair, root: string, tree: MerkleTree) {
       nullifierHash,
       secret: pair.secret,
       nullifier: pair.nullifier,
+      recipient,
       pathElements,
       pathIndices,
     },
