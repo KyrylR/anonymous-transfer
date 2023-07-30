@@ -54,12 +54,3 @@ runs:
       shell: bash
       run: |
         ./circuits/helper.sh
-
-    - if: ${{ steps.cache-circom.outputs.cache-hit != 'true' }}
-      name: Update Verifier
-      uses: test-room-7/action-update-file@v1
-      secrets:
-        secret: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        file-path: contracts/utils/Verifier.sol
-        commit-msg: Update resources
