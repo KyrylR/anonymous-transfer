@@ -21,6 +21,10 @@ runs:
       with:
         toolchain: stable
         override: true
+    - if: ${{ steps.cache-cargo.outputs.cache-hit != 'true' }}
+      name: Clone circom repo
+      shell: bash
+      run: git clone https://github.com/iden3/circom.git
     - name: ⚡ Cache
       id: cache-cargo
       uses: actions/cache@v3
@@ -29,11 +33,7 @@ runs:
           ~/.cargo/registry
           ~/.cargo/git
           circom
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-    - if: ${{ steps.cache-cargo.outputs.cache-hit != 'true' }}
-      name: Clone circom repo
-      shell: bash
-      run: git clone https://github.com/iden3/circom.git
+        key: ${{ runner.os }}-cargo
     - if: ${{ steps.cache-cargo.outputs.cache-hit != 'true' }}
       name: Install circom
       shell: bash
