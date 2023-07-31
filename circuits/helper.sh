@@ -1,6 +1,25 @@
 #!/bin/bash
 set -e
 
+command_name="circom"
+
+# Step 1: Check if the command is available
+if ! command -v "$command_name" &>/dev/null; then
+    echo "$command_name not found. Downloading..."
+
+    # Step 2: Download the binary using wget (replace the URL with the actual download URL)
+    wget "https://github.com/iden3/circom/releases/download/v2.1.6/circom-linux-amd64"
+
+    # Step 3: Make the downloaded binary executable
+    chmod +x "./circom-linux-amd64"
+
+    command_name="./circom-linux-amd64"
+
+    echo "Installation complete. You can now use $command_name."
+else
+    echo "$command_name is already installed. You can use it directly."
+fi
+
 CIRCUIT_NAME="Withdraw"
 SETUP_POWERS=13
 BUILD_DIR=""
@@ -35,7 +54,7 @@ mkdir -p ${BUILD_DIR}
 # Compiling circuit with .r1cs and .wasm files as result
 echo -e "\nCompiling the circuits..."
 
-circom ${CIRCUIT_FILE} --r1cs --wasm --sym -o ${BUILD_DIR}
+$command_name ${CIRCUIT_FILE} --r1cs --wasm --sym -o ${BUILD_DIR}
 
 mv ${BUILD_DIR}/${CIRCUIT_NAME}_js/${CIRCUIT_NAME}.wasm ${BUILD_DIR}/withdraw.wasm
 
