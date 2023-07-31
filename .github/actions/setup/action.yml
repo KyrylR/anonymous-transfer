@@ -25,7 +25,6 @@ runs:
           circom-linux-amd64
         key: |
           ${{ runner.os }}-circom-${{ hashFiles('**/Withdraw.circom') }}
-          ${{ runner.os }}-circom-${{ hashFiles('**/Verifier.sol') }}
     - if: ${{ steps.cache-circom.outputs.cache-hit != 'true' }}
       name: Generate trusted setup
       shell: bash
