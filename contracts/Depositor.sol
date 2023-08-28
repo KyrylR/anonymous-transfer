@@ -17,6 +17,8 @@ contract Depositor is PoseidonIMT {
     mapping(bytes32 => bool) public commitments;
     mapping(bytes32 => bool) public nullifies;
 
+    mapping(bytes32 => bool) public rootsHistory;
+
     /**
      * @notice Depositor contract constructor
      *
@@ -35,18 +37,21 @@ contract Depositor is PoseidonIMT {
 
         add(commitment_);
         commitments[commitment_] = true;
+        rootsHistory[getRoot()] = true;
     }
 
     function withdraw(
         bytes32 nullifierHash_,
         address recipient_,
+        bytes32 root_,
         VerifierHelper.ProofPoints calldata proof_
     ) public {
         require(!nullifies[nullifierHash_], "Depositor: nullifier already exists");
+        require(rootsHistory[root_], "Depositor: root does not exist");
 
         require(
             verifier.verifyProofSafe(
-                [uint256(getRoot()), uint256(nullifierHash_), uint256(uint160(recipient_))]
+                [uint256(root_), uint256(nullifierHash_), uint256(uint160(recipient_))]
                     .asDynamic(),
                 proof_,
                 3

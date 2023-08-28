@@ -104,15 +104,30 @@ describe("Depositor", () => {
     it("should withdraw 1 Q", async () => {
       const dataToVerify = await getZKP(pair, USER1.address, await depositor.getRoot(), localMerkleTree);
 
-      await depositor.withdraw(dataToVerify.nullifierHash, USER1.address, dataToVerify.formattedProof);
+      await depositor.withdraw(
+        dataToVerify.nullifierHash,
+        USER1.address,
+        await depositor.getRoot(),
+        dataToVerify.formattedProof
+      );
     });
 
     it("should not withdraw with same nullifier", async () => {
       const dataToVerify = await getZKP(pair, USER1.address, await depositor.getRoot(), localMerkleTree);
 
-      await depositor.withdraw(dataToVerify.nullifierHash, USER1.address, dataToVerify.formattedProof);
+      await depositor.withdraw(
+        dataToVerify.nullifierHash,
+        USER1.address,
+        await depositor.getRoot(),
+        dataToVerify.formattedProof
+      );
       await expect(
-        depositor.withdraw(dataToVerify.nullifierHash, USER1.address, dataToVerify.formattedProof)
+        depositor.withdraw(
+          dataToVerify.nullifierHash,
+          USER1.address,
+          await depositor.getRoot(),
+          dataToVerify.formattedProof
+        )
       ).to.be.revertedWith("Depositor: nullifier already exists");
     });
 
@@ -121,7 +136,12 @@ describe("Depositor", () => {
 
       dataToVerify.formattedProof.a[0] = "0x18d62e34099fd9eab341683f2d30c9a9035fffde7909dbc78b0fde1233f0f774";
       await expect(
-        depositor.withdraw(dataToVerify.nullifierHash, USER1.address, dataToVerify.formattedProof)
+        depositor.withdraw(
+          dataToVerify.nullifierHash,
+          USER1.address,
+          await depositor.getRoot(),
+          dataToVerify.formattedProof
+        )
       ).to.be.revertedWith("Depositor: Invalid withdraw proof");
     });
 
@@ -130,11 +150,22 @@ describe("Depositor", () => {
       const dataToVerify = await getZKP(pair, recipient, await depositor.getRoot(), localMerkleTree);
 
       await expect(
-        depositor.withdraw(dataToVerify.nullifierHash, OWNER.address, dataToVerify.formattedProof)
+        depositor.withdraw(
+          dataToVerify.nullifierHash,
+          OWNER.address,
+          await depositor.getRoot(),
+          dataToVerify.formattedProof
+        )
       ).to.be.revertedWith("Depositor: Invalid withdraw proof");
 
-      await expect(depositor.withdraw(dataToVerify.nullifierHash, recipient, dataToVerify.formattedProof)).to.not.be
-        .reverted;
+      await expect(
+        depositor.withdraw(
+          dataToVerify.nullifierHash,
+          recipient,
+          await depositor.getRoot(),
+          dataToVerify.formattedProof
+        )
+      ).to.not.be.reverted;
     });
 
     it("should not withdraw if asset transfer failed", async () => {
@@ -144,8 +175,23 @@ describe("Depositor", () => {
       const dataToVerify = await getZKP(pair, ERC20.address, await depositor.getRoot(), localMerkleTree);
 
       await expect(
-        depositor.withdraw(dataToVerify.nullifierHash, ERC20.address, dataToVerify.formattedProof)
+        depositor.withdraw(
+          dataToVerify.nullifierHash,
+          ERC20.address,
+          await depositor.getRoot(),
+          dataToVerify.formattedProof
+        )
       ).to.be.revertedWith("Depositor: withdraw failed");
+    });
+
+    it("should withdraw with previous root", async () => {
+      const oldRoot_ = await depositor.getRoot();
+
+      await depositor.deposit(getCommitment(generateSecrets()), { value: ethers.utils.parseEther("1") });
+
+      const dataToVerify = await getZKP(pair, USER1.address, oldRoot_, localMerkleTree);
+
+      await depositor.withdraw(dataToVerify.nullifierHash, USER1.address, oldRoot_, dataToVerify.formattedProof);
     });
   });
 });
