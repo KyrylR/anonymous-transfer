@@ -5,28 +5,36 @@ description: setup
 runs:
   using: composite
   steps:
-    - name: Setup node
+    - name: Setup NodeJS
+      id: cache-npm
       uses: actions/setup-node@v3
       with:
         node-version: "16.18.x"
         cache: npm
-    - name: Install packages
-      run: npm install
+
+    - name: Install NPM Packages
+      if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
       shell: bash
-    - name: Install snarkjs
+      run: npm install
+
+    - name: Install SnarkJS
+      if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
       shell: bash
       run: npm install -g snarkjs
-    - name: ⚡ Cache circom
+
+    - name: Cache Circom
       id: cache-circom
       uses: actions/cache@v3
       with:
         path: |
-          circuits/outputs
-          circom-linux-amd64
-        key: |
-          ${{ runner.os }}-circom-${{ hashFiles('**/Withdraw.circom') }}
-    - if: ${{ steps.cache-circom.outputs.cache-hit != 'true' }}
-      name: Generate trusted setup
+          /usr/local/bin/circom
+        key: ${{ runner.os }}-circom
+
+    - name: Install Circom
+      if: ${{ steps.cache-circom.outputs.cache-hit != 'true' }}
       shell: bash
+      working-directory: /usr/local/bin
       run: |
-        ./circuits/helper.sh
+        wget "https://github.com/iden3/circom/releases/download/v2.1.6/circom-linux-amd64"
+        chmod +x "./circom-linux-amd64"
+        mv ./circom-linux-amd64 ./circom
