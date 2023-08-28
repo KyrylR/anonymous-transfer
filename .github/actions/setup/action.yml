@@ -6,19 +6,16 @@ runs:
   using: composite
   steps:
     - name: Setup NodeJS
-      id: cache-npm
       uses: actions/setup-node@v3
       with:
         node-version: "16.18.x"
         cache: npm
 
     - name: Install NPM Packages
-      if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
       shell: bash
       run: npm install
 
     - name: Install SnarkJS
-      if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
       shell: bash
       run: npm install -g snarkjs
 

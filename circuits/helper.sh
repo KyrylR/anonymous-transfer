@@ -89,4 +89,4 @@ rm -rf ${BUILD_DIR}/zkey ${BUILD_DIR}/${CIRCUIT_NAME}_0000.zkey
 
 echo -e "\nKeys exported $BUILD_DIR/circuit_final.zkey, $BUILD_DIR/verification_key.json, $BUILD_DIR/verifier.sol"
 
-mv $BUILD_DIR/verifier.sol ./contracts/utils/Verifier.sol
+cp $BUILD_DIR/verifier.sol ./contracts/utils/Verifier.sol
