@@ -13,15 +13,32 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+
       - name: Setup
         uses: ./.github/actions/setup
+
+      - name: Caching Circuits
+        id: cache-circuits
+        env:
+          cache-name: cache-circuits
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./circuits
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./circuits') }}
+
+      - name: Circuits compiling
+        if: ${{ steps.cache-circuits.outputs.cache-hit != 'true' }}
+        run: ./circuits/helper.sh
+
       - name: Compile
         run: npx hardhat compile --force
+
       - name: Run tests
         run: npm run test
-      - if: ${{ steps.cache-circom.outputs.cache-hit != 'true' }}
+
+      - if: ${{ steps.cache-circuits.outputs.cache-hit != 'true' }}
         name: Update Verifier
         uses: test-room-7/action-update-file@v1
         with:
