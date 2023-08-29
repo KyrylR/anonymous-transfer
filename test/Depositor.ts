@@ -193,5 +193,32 @@ describe("Depositor", () => {
 
       await depositor.withdraw(dataToVerify.nullifierHash, USER1.address, oldRoot_, dataToVerify.formattedProof);
     });
+
+    it("should not withdraw with wrong root", async () => {
+      const somePair = generateSecrets();
+
+      localMerkleTree = buildSparseMerkleTree(
+        poseidonHash,
+        [
+          getBytes32PoseidonHash(getCommitment(somePair)),
+          getBytes32PoseidonHash(getCommitment(generateSecrets())),
+          getBytes32PoseidonHash(getCommitment(generateSecrets())),
+          getBytes32PoseidonHash(getCommitment(generateSecrets())),
+          getBytes32PoseidonHash(getCommitment(generateSecrets())),
+        ],
+        (await depositor.getHeight()).toNumber()
+      );
+
+      const dataToVerify = await getZKP(somePair, USER1.address, getRoot(localMerkleTree), localMerkleTree);
+
+      await expect(
+        depositor.withdraw(
+          dataToVerify.nullifierHash,
+          USER1.address,
+          getRoot(localMerkleTree),
+          dataToVerify.formattedProof
+        )
+      ).to.be.revertedWith("Depositor: root does not exist");
+    });
   });
 });
