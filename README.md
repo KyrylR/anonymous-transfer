@@ -42,7 +42,7 @@ to identify the source and recipient of the transfer.
 
 One of the possible solutions is to use ZKP of inclusion to hide a transfer in a set of other transfers.
 
-> To achieve anonymity, we need much activity on the core contract.
+> we need high user activity on the core contract to achieve anonymity.
 
 ## How it works
 
