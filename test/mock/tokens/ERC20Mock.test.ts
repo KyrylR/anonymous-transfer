@@ -1,20 +1,21 @@
 import { expect } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { Reverter } from "@/test/helpers/reverter";
-import { wei } from "@/scripts/utils/utils";
-import { ERC20Mock } from "@ethers-v5";
+
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
+
+import { Reverter } from "@test-helpers";
+
+import { ERC20Mock } from "@ethers-v6";
 
 describe("ERC20Mock", () => {
   const reverter = new Reverter();
 
-  let OWNER: SignerWithAddress;
   let SECOND: SignerWithAddress;
 
   let erc20: ERC20Mock;
 
   before(async () => {
-    [OWNER, SECOND] = await ethers.getSigners();
+    [, SECOND] = await ethers.getSigners();
 
     const ERC20Mock = await ethers.getContractFactory("ERC20Mock");
     erc20 = await ERC20Mock.deploy("Mock", "Mock", 18);
@@ -36,9 +37,9 @@ describe("ERC20Mock", () => {
     it("should mint correctly", async () => {
       expect(await erc20.balanceOf(SECOND.address)).to.eq(0);
 
-      const tx = erc20.mint(SECOND.address, wei(1000));
+      const tx = erc20.mint(SECOND.address, ethers.parseEther("1000"));
 
-      await expect(tx).to.changeTokenBalance(erc20, SECOND, wei(1000));
+      await expect(tx).to.changeTokenBalance(erc20, SECOND, ethers.parseEther("1000"));
     });
   });
 
@@ -46,11 +47,11 @@ describe("ERC20Mock", () => {
     it("should burn correctly", async () => {
       expect(await erc20.balanceOf(SECOND.address)).to.eq(0);
 
-      await erc20.mint(SECOND.address, wei(1000));
+      await erc20.mint(SECOND.address, ethers.parseEther("1000"));
 
-      const tx = erc20.burn(SECOND.address, wei("0.5"));
+      const tx = erc20.burn(SECOND.address, ethers.parseEther("0.5"));
 
-      await expect(tx).to.changeTokenBalance(erc20, SECOND, wei("-0.5"));
+      await expect(tx).to.changeTokenBalance(erc20, SECOND, ethers.parseEther("-0.5"));
     });
   });
 });

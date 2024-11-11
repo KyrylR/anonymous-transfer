@@ -5,33 +5,11 @@ description: setup
 runs:
   using: composite
   steps:
-    - name: Setup NodeJS
+    - name: Setup node
       uses: actions/setup-node@v3
       with:
-        node-version: "16.18.x"
+        node-version: "20.x"
         cache: npm
-
-    - name: Install NPM Packages
-      shell: bash
+    - name: Install packages
       run: npm install
-
-    - name: Install SnarkJS
       shell: bash
-      run: npm install -g snarkjs
-
-    - name: Cache Circom
-      id: cache-circom
-      uses: actions/cache@v3
-      with:
-        path: |
-          /usr/local/bin/circom
-        key: ${{ runner.os }}-circom
-
-    - name: Install Circom
-      if: ${{ steps.cache-circom.outputs.cache-hit != 'true' }}
-      shell: bash
-      working-directory: /usr/local/bin
-      run: |
-        wget "https://github.com/iden3/circom/releases/download/v2.1.6/circom-linux-amd64"
-        chmod +x "./circom-linux-amd64"
-        mv ./circom-linux-amd64 ./circom
